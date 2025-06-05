@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+
+{% block body %}
+
+<div class="container mt-5">
+  <h1>Просмотр данных</h1>
+    <h1>CSV Таблица</h1>
+    {{ table_html | safe }}
+</div>
+{% endblock %}

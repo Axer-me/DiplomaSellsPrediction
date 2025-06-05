@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Страница с предсказаниями
+{% endblock %}
+
+
+{% block body %}
+<h1>Страница с предсказаниями продаж</h1>
+<form method="post">
+  <div>
+  <div>
+        <label for="graph_types">Выберите тип графика:</label>
+        <select id="graph_types" name="graph_types">
+            {% for option1 in graph_types %}
+            <option value="{{ option1 }}">{{ option1 }}</option>
+            {% endfor %}
+        </select>
+        <label for="col1">Выберите колонку:</label>
+        <select id="col1" name="col1">
+            {% for option2 in col_options %}
+            <option value="{{ option2 }}">{{ option2 }}</option>
+            {% endfor %}
+        </select>
+    </div>
+  <div>
+    <label for="operation">Выберите колонку:</label>
+        <select id="operation" name="operation">
+            {% for option4 in operation %}
+            <option value="{{ option4 }}">{{ option4 }}</option>
+            {% endfor %}
+        </select>
+  </div>
+<input type="submit" class="btn btn-success" value="Отправить">
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Данные.
+{% endblock %}
+
+
+{% block body %}
+
+<div class="container mt-5">
+  <h1>Просмотр данных</h1>
+    <h1>Excel Таблица</h1>
+    {{ table_html | safe }}
+      <a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/data/full">Добавить строки</a><br>
+<a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/data/full">Полные данные</a>
+<a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/data/graphs">Данные в графическом виде</a>
+</div>
+
+{% endblock %}

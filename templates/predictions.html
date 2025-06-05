@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Страница с предсказаниями
+{% endblock %}
+
+
+{% block body %}
+<h1>Страница с предсказаниями продаж</h1>
+<form method="post">
+    <div>
+        <div>
+            <label for="prediction_type">Тип предсказания:</label>
+            <select id="prediction_type" name="prediction_type">
+                {% for option1 in prediction_type %}
+                <option value="{{ option1 }}">{{ option1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label >Выберите дату отсчёта</label>
+                <input id="prediction_first_date" name="prediction_first_date" type="date" min={{today}}>
+            </select>
+        </div>
+        <div>
+            <label for="prediction_item_category">Выберите категорию товара</label>
+            <select id="prediction_item_category" name="prediction_item_category">
+                {% for option4 in prediction_item_category %}
+                <option value="{{ option4 }}">{{ option4 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="prediction_item_value">Выберите товар</label>
+            <select id="prediction_item_value" name="prediction_item_value">
+                {% for option4 in prediction_item_value %}
+                <option value="{{ option4 }}">{{ option4 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="prediction_city_value">Выберите код города</label>
+            <select id="prediction_city_value" name="prediction_city_value">
+                {% for option4 in prediction_city_value %}
+                <option value="{{ option4 }}">{{ option4 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="prediction_client_group_values">Выберите группу клиентов</label>
+            <select id="prediction_client_group_values" name="prediction_client_group_values">
+                {% for option4 in prediction_client_group_values %}
+                <option value="{{ option4 }}">{{ option4 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="prediction_format_values">Выберите формат точки</label>
+            <select id="prediction_format_values" name="prediction_format_values">
+                {% for option4 in prediction_format_values %}
+                <option value="{{ option4 }}">{{ option4 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <input type="submit" class="btn btn-success" value="Предсказать">
+    </div>
+</form>
+{% endblock %}

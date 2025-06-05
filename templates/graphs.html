@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Страница с графиками
+{% endblock %}
+
+
+{% block body %}
+
+<div class="container mt-5">
+  <h1>Просмотр данных</h1>
+    <h1>График</h1>
+    <img src="{{ url_for('static', filename='graph.png') }}" alt="График">
+  <a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/data/graphs/options">Настройки</a>
+</div>
+{% endblock %}
