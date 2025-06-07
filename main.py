@@ -251,7 +251,7 @@ def prediction_table():
     return render_template('prediction_table.html', table_html=html_table)
 
 
-@app.route('/predictions/model')
+@app.route('/data/predictions/model')
 @login_required
 def data_model_page():
     param_dict = {'colsample_bytree': model.cs_bytree, 'gamma': model.gam, 'learning_rate': model.lr,
