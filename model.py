@@ -19,7 +19,12 @@ X = data_scaled.drop('Продажи, кг', axis=1)
 y = data_scaled['Продажи, кг']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.19, random_state=1)
-
-prediction_model = XGBRegressor(colsample_bytree = 1, gamma = 0, learning_rate = 0.1,
-                     max_depth = 9, n_estimators = 100, subsample = 0.8)
+cs_bytree = 1
+gam = 0
+lr = 0.1
+m_depth = 9
+n_est = 100
+s_sample = 0.8
+prediction_model = XGBRegressor(colsample_bytree = cs_bytree, gamma = gam, learning_rate = lr,
+                     max_depth = m_depth, n_estimators = n_est, subsample = s_sample)
 prediction_model.fit(X_train, y_train)

@@ -23,7 +23,7 @@ db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-
+print(model.data.index.max())
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -249,6 +249,16 @@ def prediction_table():
     html_table = prediction_df.to_html(classes="dataframe")
 
     return render_template('prediction_table.html', table_html=html_table)
+
+
+@app.route('/predictions/model')
+@login_required
+def data_model_page():
+    param_dict = {'colsample_bytree': model.cs_bytree, 'gamma': model.gam, 'learning_rate': model.lr,
+                  'max_depth': model.m_depth, 'n_estimators': model.n_est, 'subsample': model.s_sample}
+    html_table = pd.DataFrame(param_dict).to_html(classes="dataframe")
+
+    return render_template('model_page.html', table_html=html_table)
 
 
 
