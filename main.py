@@ -256,7 +256,9 @@ def prediction_table():
 def data_model_page():
     param_dict = {'colsample_bytree': model.cs_bytree, 'gamma': model.gam, 'learning_rate': model.lr,
                   'max_depth': model.m_depth, 'n_estimators': model.n_est, 'subsample': model.s_sample}
-    html_table = pd.DataFrame(param_dict).to_html(classes="dataframe")
+    html_table = pd.DataFrame([param_dict]).reset_index(drop=True)
+    html_table.index = ['Значение' for existing_index_value in html_table.index]
+    html_table = html_table.T.to_html(classes="dataframe")
 
     return render_template('model_page.html', table_html=html_table)
 
