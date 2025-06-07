@@ -1,19 +1,17 @@
+{% extends 'base.html' %}
 
 {% block body %}
-<h1>Страница с предсказаниями продаж</h1>
+<h1>Страница добавления строк</h1>
 <form method="post">
     <div>
         <div>
-            <label for="prediction_type">Тип предсказания:</label>
-            <select id="prediction_type" name="prediction_type">
-                {% for option1 in prediction_type %}
-                <option value="{{ option1 }}">{{ option1 }}</option>
-                {% endfor %}
+            <label >Выберите дату отсчёта</label>
+                <input id="prediction_first_date" name="prediction_first_date" type="date" max={{today}} min={{min_day}} value="{{today}}">
             </select>
         </div>
         <div>
-            <label >Выберите дату отсчёта</label>
-                <input id="prediction_first_date" name="prediction_first_date" type="date" min={{today}} value={{today}} max={{max_day}}>
+            <label >Введите продажи</label>
+                <input id="sells" name="sells" type="number" min={{0}} value={{avg_sell}}>
             </select>
         </div>
         <div>
@@ -57,7 +55,7 @@
             </select>
         </div>
 
-        <input type="submit" class="btn btn-success" value="Предсказать">
+        <input type="submit" class="btn btn-success" value="Добавить">
         <a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/data/predictions/model">Модель</a>
     </div>
 </form>

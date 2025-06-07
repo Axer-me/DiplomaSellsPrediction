@@ -23,7 +23,6 @@ db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-print(model.data.index.max())
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -196,41 +195,42 @@ def predictions():
     prediction_client_group_values = list(model.data['Группа клиентов'].unique())
     prediction_format_values = list(model.data['Формат точки'].unique())
     today = date.today()
+    max_day = today + relativedelta(years=5)
     prediction_df = pd.DataFrame(columns=model.X.columns)
     if request.method == 'POST':
         if request.form["prediction_first_date"]:
-            day = request.form["prediction_first_date"]
+            new_date = request.form["prediction_first_date"]
         else:
             new_date = today
-            prediction_item_category = request.form['prediction_item_category']
-            prediction_item_value = request.form["prediction_item_value"]
-            prediction_city_value = request.form["prediction_city_value"]
-            prediction_client_group_value = request.form["prediction_client_group_values"]
-            prediction_format_value = request.form["prediction_format_values"]
-            prediction_type = request.form["prediction_type"]
-            if prediction_type == 'На неделю':
-                new_date += relativedelta(days=+7)
-            elif prediction_type == 'На месяц':
-                new_date += relativedelta(months=+1)
-            elif prediction_type == 'На год':
-                new_date += relativedelta(years=+1)
-            current_date = today
-            while current_date < new_date:
-                cur_dict = {'Дата': current_date, 'Категория товара': int(prediction_item_category),
-                            'Товар': int(prediction_item_value), 'Город': int(prediction_city_value),
-                            'Группа клиентов': int(prediction_client_group_value), 'Формат точки': int(prediction_format_value)}
-                prediction_df = pd.concat([prediction_df,pd.DataFrame([cur_dict])], ignore_index=True)
-                prediction_df['Дата'] = prediction_df['Дата'].astype('datetime64[ns]')
-                current_date += relativedelta(days=+1)
-            prediction_df = preprocessing.transform(prediction_df)
-            prediction_df_scaled = prediction_df.copy()
-            prediction_df_scaled = preprocessing.scaling(prediction_df_scaled)
-            prediction = model.prediction_model.predict(prediction_df_scaled)
-            prediction = pd.Series(prediction)
-            prediction.name = 'Продажи, кг'
-            prediction_df = pd.concat([prediction_df, pd.Series(prediction)], axis=1)
+        prediction_item_category = request.form['prediction_item_category']
+        prediction_item_value = request.form["prediction_item_value"]
+        prediction_city_value = request.form["prediction_city_value"]
+        prediction_client_group_value = request.form["prediction_client_group_values"]
+        prediction_format_value = request.form["prediction_format_values"]
+        prediction_type = request.form["prediction_type"]
+        if prediction_type == 'На неделю':
+            new_date += relativedelta(days=+7)
+        elif prediction_type == 'На месяц':
+            new_date += relativedelta(months=+1)
+        elif prediction_type == 'На год':
+            new_date += relativedelta(years=+1)
+        current_date = today
+        while current_date < new_date:
+            cur_dict = {'Дата': current_date, 'Категория товара': int(prediction_item_category),
+                        'Товар': int(prediction_item_value), 'Город': int(prediction_city_value),
+                        'Группа клиентов': int(prediction_client_group_value), 'Формат точки': int(prediction_format_value)}
+            prediction_df = pd.concat([prediction_df,pd.DataFrame([cur_dict])], ignore_index=True)
+            prediction_df['Дата'] = prediction_df['Дата'].astype('datetime64[ns]')
+            current_date += relativedelta(days=+1)
+        prediction_df = preprocessing.transform(prediction_df)
+        prediction_df_scaled = prediction_df.copy()
+        prediction_df_scaled = preprocessing.scaling(prediction_df_scaled)
+        prediction = model.prediction_model.predict(prediction_df_scaled)
+        prediction = pd.Series(prediction)
+        prediction.name = 'Продажи, кг'
+        prediction_df = pd.concat([prediction_df, pd.Series(prediction)], axis=1)
 
-            prediction_df.to_excel('static/prediction.xlsx', index=False)
+        prediction_df.to_excel('static/prediction.xlsx', index=False)
 
         return redirect('/predictions/table')
     else:
@@ -239,7 +239,7 @@ def predictions():
                                prediction_item_value=prediction_item_value,
                                prediction_city_value=prediction_city_value,
                                prediction_client_group_values=prediction_client_group_values,
-                               prediction_format_values=prediction_format_values, today=today)
+                               prediction_format_values=prediction_format_values, today=today, max_day=max_day)
 
 @app.route('/predictions/table')
 @login_required
@@ -262,7 +262,45 @@ def data_model_page():
 
     return render_template('model_page.html', table_html=html_table)
 
-
+@app.route('/data/add_row', methods=['GET', 'POST'])
+@login_required
+def add_row():
+    prediction_item_category = list(model.data['Категория товара'].unique())
+    prediction_item_value = list(model.data['Товар'].unique())
+    prediction_city_value = list(model.data['Город'].unique())
+    prediction_client_group_values = list(model.data['Группа клиентов'].unique())
+    prediction_format_values = list(model.data['Формат точки'].unique())
+    today = date.today()
+    avg_sell = round(model.data['Продажи, кг'].mean())
+    min_day = today - relativedelta(years=3)
+    if request.method == 'POST':
+        if request.form["prediction_first_date"]:
+            day = request.form["prediction_first_date"]
+        else:
+            day = today
+        if request.form['sells']:
+            sell = request.form['sells']
+        else:
+            sell = avg_sell
+        prediction_item_category = request.form['prediction_item_category']
+        prediction_item_value = request.form["prediction_item_value"]
+        prediction_city_value = request.form["prediction_city_value"]
+        prediction_client_group_value = request.form["prediction_client_group_values"]
+        prediction_format_value = request.form["prediction_format_values"]
+        temp_dict = {'Дата': day, 'Категория товара': prediction_item_category,
+                     'Товар': prediction_item_value, 'Город': prediction_city_value,
+                     'Группа клиентов': prediction_client_group_value,
+                     'Формат точки': prediction_format_value, 'Продажи, кг': sell}
+        new_data = pd.concat([model.data, pd.DataFrame([temp_dict])], ignore_index=True)
+        new_data.to_excel('my_resourses/Sells_new.xlsx', index=False)
+        return redirect('/data/full')
+    else:
+        return render_template('add_row.html', min_day=min_day, avg_sell=avg_sell,
+                               prediction_item_category=prediction_item_category,
+                               prediction_item_value=prediction_item_value,
+                               prediction_city_value=prediction_city_value,
+                               prediction_client_group_values=prediction_client_group_values,
+                               prediction_format_values=prediction_format_values, today=today)
 
 
 if __name__ == '__main__':
