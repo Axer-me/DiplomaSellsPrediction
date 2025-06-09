@@ -4,8 +4,11 @@
 {% block body %}
 
 <div class="container mt-5">
-  <h1>Параметры модели</h1>
+  <div>
+    <h1>Параметры модели</h1>
     <h1>Таблица</h1>
     {{ table_html | safe }}
+  </div>
+  <a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/data/predictions/model/fine-tuning">Дообучить</a>
 </div>
 {% endblock %}

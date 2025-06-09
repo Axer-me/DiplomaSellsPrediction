@@ -9,8 +9,6 @@ from xgboost import XGBRegressor
 
 data_path = r'my_resourses/Sells.xlsx'
 data = pd.read_excel(data_path)
-print(data.info())
-
 data_preprocessed = preprocessing.transform(data)
 
 data_scaled = preprocessing.scaling(data_preprocessed)

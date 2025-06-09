@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+
+{% block body %}
+
+<div class="container mt-5">
+    {% if bool %}
+    <h1>Модель успешно дообучена</h1>
+    {% else %}
+    <h1>Упс. Произошла ошибка</h1>
+    {% endif %}
+    <a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/main">На главную</a>
+</div>
+{% endblock %}

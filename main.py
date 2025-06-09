@@ -1,3 +1,4 @@
+import os
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
 import pandas as pd
@@ -134,7 +135,15 @@ def data_page():
 @app.route('/data/full', methods=['GET', 'POST'])
 @login_required
 def data_full():
-    html_table = model.data.to_html(classes="dataframe")
+    temp_df1 = pd.read_excel(model.data_path)
+    try:
+        temp_df2 = pd.read_excel(r'my_resourses/Sells_new.xlsx')
+        temp_df = pd.concat([temp_df1, temp_df2], ignore_index=True)
+        temp_df = temp_df.reset_index(drop=True)
+    except FileNotFoundError as ex:
+        print(ex)
+        temp_df = temp_df1
+    html_table = temp_df.to_html(classes="dataframe")
 
     return render_template('data_full.html', table_html=html_table)
 
@@ -150,7 +159,6 @@ def data_graphs_page():
 def graph_options():
     graph_types = set(['Столбчатая диаграмма', 'Линейный график'])
     col_options = set(model.X.columns)
-    print(col_options)
     operation = set(['sum', 'count', 'mean', 'max', 'min', 'none'])
     if request.method == 'POST':
         graph_type = request.form['graph_types']
@@ -245,7 +253,6 @@ def predictions():
 @login_required
 def prediction_table():
     prediction_df = pd.read_excel('static/prediction.xlsx')
-    print(prediction_df.columns)
     html_table = prediction_df.to_html(classes="dataframe")
 
     return render_template('prediction_table.html', table_html=html_table)
@@ -291,8 +298,14 @@ def add_row():
                      'Товар': prediction_item_value, 'Город': prediction_city_value,
                      'Группа клиентов': prediction_client_group_value,
                      'Формат точки': prediction_format_value, 'Продажи, кг': sell}
-        new_data = pd.concat([model.data, pd.DataFrame([temp_dict])], ignore_index=True)
-        new_data.to_excel('my_resourses/Sells_new.xlsx', index=False)
+        try:
+            temp_df = pd.read_excel('my_resourses/Sells_new.xlsx')
+            new_data = pd.concat([temp_df, pd.DataFrame([temp_dict])], ignore_index=True)
+            new_data.to_excel('my_resourses/Sells_new.xlsx', index=False)
+        except FileNotFoundError:
+            new_data = pd.DataFrame([temp_dict])
+            new_data.to_excel('my_resourses/Sells_new.xlsx', index=False)
+
         return redirect('/data/full')
     else:
         return render_template('add_row.html', min_day=min_day, avg_sell=avg_sell,
@@ -301,6 +314,39 @@ def add_row():
                                prediction_city_value=prediction_city_value,
                                prediction_client_group_values=prediction_client_group_values,
                                prediction_format_values=prediction_format_values, today=today)
+
+@app.route('/data/predictions/model/fine-tuning')
+@login_required
+def model_fine_tuning():
+    try:
+        temp_df = pd.read_excel(r'my_resourses/Sells_new.xlsx')
+        temp_df['Дата'] = temp_df['Дата'].astype('datetime64[ns]')
+        temp_df = preprocessing.transform(temp_df)
+        temp_df = preprocessing.scaling(temp_df)
+        temp_x = temp_df.drop('Продажи, кг', axis=1)
+        temp_y = temp_df['Продажи, кг']
+        try:
+            model.prediction_model.fit(temp_x, temp_y, xgb_model=model.prediction_model.get_booster())
+            sells = pd.read_excel(r'my_resourses/Sells_new.xlsx')
+            new_data = pd.concat([temp_df, sells], ignore_index=True)
+            new_data = new_data.reset_index(drop=True)
+            new_data.to_excel(r'my_resourses/Sells_new.xlsx')
+            print(model.prediction_model.score(model.X_test, model.y_test))
+            try:
+                os.remove(r'my_resourses/Sells_new.xlsx')
+            except FileNotFoundError as ex:
+                print(ex)
+            bool = True
+        except Exception as ex:
+            print(ex)
+            bool = False
+    except FileNotFoundError as ex:
+        bool = False
+        print(ex)
+
+    return render_template('model_fine-tuning.html', bool=bool)
+
+
 
 
 if __name__ == '__main__':
