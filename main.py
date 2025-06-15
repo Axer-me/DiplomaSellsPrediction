@@ -13,7 +13,7 @@ from users import User, db
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 print(model.prediction_model.score(model.X_test, model.y_test))
-print(123)
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'diploma-work'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
