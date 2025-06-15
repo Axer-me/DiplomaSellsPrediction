@@ -10,6 +10,7 @@ import preprocessing
 from users import User, db
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
+
 print(model.prediction_model.score(model.X_test, model.y_test))
 
 app = Flask(__name__)
