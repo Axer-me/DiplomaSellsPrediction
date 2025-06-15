@@ -1,64 +1,104 @@
+{% extends 'base.html' %}
+
+{% block style%}
+.body_style {
+max-width: 800px;
+font-family: Arial, sans-serif;
+line-height: 1.6;
+margin: 0 auto;
+padding: 20px;
+color: #333;
+}
+h1 {
+color: #2c3e50;
+text-align: center;
+margin-bottom: 20px;
+}
+h2 {
+color: #3498db;
+margin-top: 25px;
+border-bottom: 1px solid #eee;
+padding-bottom: 5px;
+}
+ul {
+padding-left: 20px;
+}
+li {
+margin-bottom: 8px;
+}
+.conclusion {
+background-color: #f8f9fa;
+padding: 15px;
+border-left: 4px solid #3498db;
+margin-top: 20px;
+}
+{% endblock%}
 
 {% block body %}
-<h1>Страница с предсказаниями продаж</h1>
-<form method="post">
-    <div>
+<h1>Страница с прогнозированием продаж</h1>
+<div class="body_style">
+    <form method="post">
         <div>
-            <label for="prediction_type">Тип предсказания:</label>
-            <select id="prediction_type" name="prediction_type">
-                {% for option1 in prediction_type %}
-                <option value="{{ option1 }}">{{ option1 }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label >Выберите дату отсчёта</label>
-                <input id="prediction_first_date" name="prediction_first_date" type="date" min={{today}} value={{today}} max={{max_day}}>
-            </select>
-        </div>
-        <div>
-            <label for="prediction_item_category">Выберите категорию товара</label>
-            <select id="prediction_item_category" name="prediction_item_category">
-                {% for option4 in prediction_item_category %}
-                <option value="{{ option4 }}">{{ option4 }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="prediction_item_value">Выберите товар</label>
-            <select id="prediction_item_value" name="prediction_item_value">
-                {% for option4 in prediction_item_value %}
-                <option value="{{ option4 }}">{{ option4 }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="prediction_city_value">Выберите код города</label>
-            <select id="prediction_city_value" name="prediction_city_value">
-                {% for option4 in prediction_city_value %}
-                <option value="{{ option4 }}">{{ option4 }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="prediction_client_group_values">Выберите группу клиентов</label>
-            <select id="prediction_client_group_values" name="prediction_client_group_values">
-                {% for option4 in prediction_client_group_values %}
-                <option value="{{ option4 }}">{{ option4 }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="prediction_format_values">Выберите формат точки</label>
-            <select id="prediction_format_values" name="prediction_format_values">
-                {% for option4 in prediction_format_values %}
-                <option value="{{ option4 }}">{{ option4 }}</option>
-                {% endfor %}
-            </select>
-        </div>
+            <div>
+                <label for="prediction_type">Тип предсказания:</label>
+                <select id="prediction_type" name="prediction_type">
+                    {% for option1 in prediction_type %}
+                    <option value="{{ option1 }}">{{ option1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Выберите дату отсчёта</label>
+                <input id="prediction_first_date" name="prediction_first_date" type="date" min={{today}} value={{today}}
+                       max={{max_day}}>
+                </select>
+            </div>
+            <div>
+                <label for="prediction_item_category">Выберите категорию товара</label>
+                <select id="prediction_item_category" name="prediction_item_category">
+                    {% for option4 in prediction_item_category %}
+                    <option value="{{ option4 }}">{{ option4 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="prediction_item_value">Выберите товар</label>
+                <select id="prediction_item_value" name="prediction_item_value">
+                    {% for option4 in prediction_item_value %}
+                    <option value="{{ option4 }}">{{ option4 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="prediction_city_value">Выберите код города</label>
+                <select id="prediction_city_value" name="prediction_city_value">
+                    {% for option4 in prediction_city_value %}
+                    <option value="{{ option4 }}">{{ option4 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="prediction_client_group_values">Выберите группу клиентов</label>
+                <select id="prediction_client_group_values" name="prediction_client_group_values">
+                    {% for option4 in prediction_client_group_values %}
+                    <option value="{{ option4 }}">{{ option4 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="prediction_format_values">Выберите формат точки</label>
+                <select id="prediction_format_values" name="prediction_format_values">
+                    {% for option4 in prediction_format_values %}
+                    <option value="{{ option4 }}">{{ option4 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <input type="submit" class="btn btn-success" value="Предсказать">
-        <a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/data/predictions/model">Модель</a>
-    </div>
-</form>
+            <input type="submit" class="btn btn-success" value="Предсказать">
+            {% if current_user.role != 'user'%}
+            <a class="btn btn-lg btn-light fw-bold border-white bg-blue" href="/data/predictions/model">Модель</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
 {% endblock %}
