@@ -5,34 +5,70 @@
 Страница с предсказаниями
 {% endblock %}
 
+{% block style%}
+.body_style {
+max-width: 800px;
+font-family: Arial, sans-serif;
+line-height: 1.6;
+margin: 0 auto;
+padding: 20px;
+color: #333;
+}
+h1 {
+color: #2c3e50;
+text-align: center;
+margin-bottom: 20px;
+}
+h2 {
+color: #3498db;
+margin-top: 25px;
+border-bottom: 1px solid #eee;
+padding-bottom: 5px;
+}
+ul {
+padding-left: 20px;
+}
+li {
+margin-bottom: 8px;
+}
+.conclusion {
+background-color: #f8f9fa;
+padding: 15px;
+border-left: 4px solid #3498db;
+margin-top: 20px;
+}
+{% endblock%}
 
 {% block body %}
-<h1>Страница с предсказаниями продаж</h1>
-<form method="post">
-  <div>
-  <div>
-        <label for="graph_types">Выберите тип графика:</label>
-        <select id="graph_types" name="graph_types">
-            {% for option1 in graph_types %}
-            <option value="{{ option1 }}">{{ option1 }}</option>
-            {% endfor %}
-        </select>
-        <label for="col1">Выберите колонку:</label>
-        <select id="col1" name="col1">
-            {% for option2 in col_options %}
-            <option value="{{ option2 }}">{{ option2 }}</option>
-            {% endfor %}
-        </select>
-    </div>
-  <div>
-    <label for="operation">Выберите колонку:</label>
-        <select id="operation" name="operation">
-            {% for option4 in operation %}
-            <option value="{{ option4 }}">{{ option4 }}</option>
-            {% endfor %}
-        </select>
-  </div>
-<input type="submit" class="btn btn-success" value="Отправить">
-    </div>
-</form>
+<div class="body_style">
+
+    <h1>Страница с предсказаниями продаж</h1>
+    <form method="post">
+        <div>
+            <div>
+                <label for="graph_types">Выберите тип графика:</label>
+                <select id="graph_types" name="graph_types">
+                    {% for option1 in graph_types %}
+                    <option value="{{ option1 }}">{{ option1 }}</option>
+                    {% endfor %}
+                </select>
+                <label for="col1">Выберите колонку:</label>
+                <select id="col1" name="col1">
+                    {% for option2 in col_options %}
+                    <option value="{{ option2 }}">{{ option2 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="operation">Выберите колонку:</label>
+                <select id="operation" name="operation">
+                    {% for option4 in operation %}
+                    <option value="{{ option4 }}">{{ option4 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="submit" class="btn btn-success" value="Отправить">
+        </div>
+    </form>
+</div>
 {% endblock %}

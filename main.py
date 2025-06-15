@@ -1,10 +1,8 @@
 import os
-from datetime import date, timedelta, datetime
+from datetime import date
 from dateutil.relativedelta import relativedelta
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash
-from numpy import datetime64
-from sqlalchemy.sql.functions import current_date
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import model
@@ -12,9 +10,10 @@ import matplotlib.pyplot as plt
 
 import preprocessing
 from users import User, db
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 print(model.prediction_model.score(model.X_test, model.y_test))
+print(123)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'diploma-work'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
@@ -28,6 +27,22 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+@app.route('/users', methods=['GET', 'POST'])
+@login_required
+def users():
+    users_list = User.query.order_by(User.id).all()
+    roles = ['user', 'engineer','admin']
+    if request.method == 'POST':
+        user_id = request.form.get('id')
+        user_id = int(user_id)
+        user = User.query.get(user_id)
+        new_role = request.form.get('roles')
+        if user:
+            user.role=new_role
+            db.session.commit()
+        return redirect('/users')
+    else: return render_template('users.html', roles=roles, users_list=users_list)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -69,7 +84,8 @@ def register():
         new_user = User(
             email=email,
             name=name,
-            password=generate_password_hash(password)
+            password=generate_password_hash(password),
+            role='user'
         )
 
         db.session.add(new_user)
@@ -80,10 +96,27 @@ def register():
 
     return render_template('register.html')
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    return render_template('profile.html', name=current_user.name)
+    if request.method == 'POST':
+        if request.form.get('password_change'):
+            password = request.form.get('password')
+            password_again = request.form.get('password_again')
+            if password == password_again and password and password_again:
+                if not check_password_hash(current_user.password, password):
+                    flash('Неверный пароль. Пожалуйста, попробуйте снова.')
+                else:
+                    current_user.password = generate_password_hash(password)
+                    db.session.commit()
+            else: flash('Пароли не совпадают.')
+        elif request.form.get('about_change'):
+            current_user.about_me = request.form.get('about_user')
+            print('changed')
+            db.session.commit()
+        return redirect('/profile')
+    return render_template('profile.html', name=current_user.name,
+                           role=current_user.role, about=current_user.about_me)
 
 @app.route('/logout')
 @login_required
@@ -94,10 +127,11 @@ def logout():
 
 
 @app.route('/main')
-@app.route('/home')
 @login_required
 def index():
-    return render_template('index.html')
+    table_html = model.table_html
+    return render_template('index.html', graph_path='/static/graph.png',
+                           table_html=table_html)
 
 
 @app.route('/about')
@@ -108,28 +142,16 @@ def about():
 
 @app.route('/')
 def introduction():
-    return render_template('introduction.html')
+    return render_template("introduction.html")
 
 
 @app.route('/data', methods=['GET', 'POST'])
 @login_required
 def data_page():
-    group8 = model.data_preprocessed.loc[model.data_preprocessed['Категория товара'] != -1, :].groupby(['Категория товара'])[
-        ['Продажи, кг']].sum()
-    x = list(group8.index)
-    for i in range(group8['Продажи, кг'].count()):
-        x[i] = str(x[i])
-    y = list()
-    for i in range(group8['Продажи, кг'].count()):
-        y.append(group8.values[i, 0])
-    plt.bar(x, y, label='Продажи по категориям')
-    plt.xlabel('Категория товара')
-    plt.ylabel('Продажи, 10*млн кг')
-    plt.title('Столбчатая диаграмма продаж')
-    plt.savefig('static/graph.png')
-    html_table = model.data.sample(10).to_html(classes="dataframe")
 
-    return render_template('data.html', table_html=html_table)
+    table_html = model.table_html
+
+    return render_template('data.html', table_html=table_html)
 
 
 @app.route('/data/full', methods=['GET', 'POST'])
@@ -157,37 +179,33 @@ def data_graphs_page():
 @app.route('/data/graphs/options', methods=['GET', 'POST'])
 @login_required
 def graph_options():
-    graph_types = set(['Столбчатая диаграмма', 'Линейный график'])
+    graph_types = ['Столбчатая диаграмма', 'Линейный график']
     col_options = set(model.X.columns)
-    operation = set(['sum', 'count', 'mean', 'max', 'min', 'none'])
+    operation = ['sum', 'count', 'mean', 'max', 'min', 'none']
     if request.method == 'POST':
         graph_type = request.form['graph_types']
         col1 = request.form['col1']
         operation = request.form['operation']
+        graph_data = model.data_preprocessed.groupby([col1])['Продажи, кг']
+        if operation == 'sum':
+            graph_data = graph_data.sum()
+        elif operation == 'count':
+            graph_data = graph_data.count()
+        elif operation == 'mean':
+            graph_data = graph_data.mean()
+        elif operation == 'max':
+            graph_data = graph_data.max()
+        elif operation == 'min':
+            graph_data = graph_data.min()
+        else:
+            graph_data = graph_data.count()
+        graph_data.columns = [{operation}]
         if graph_type == 'Столбчатая диаграмма':
-            graph_data = model.data_preprocessed.groupby([col1])['Продажи, кг']
-            if operation == 'sum': graph_data = graph_data.sum()
-            elif operation == 'count': graph_data = graph_data.count()
-            elif operation == 'mean': graph_data = graph_data.mean()
-            elif operation == 'max': graph_data = graph_data.max()
-            elif operation == 'min': graph_data = graph_data.min()
-            else: graph_data = graph_data.count()
-            graph_data.columns = [{operation}]
             graph_data = graph_data.sort_values(ascending=False).plot(kind='bar')
-            graph_data.get_figure().savefig('static/graph.png')
-            plt.close()
         elif graph_type == 'Линейный график':
-            graph_data = model.data_preprocessed.groupby([col1])['Продажи, кг']
-            if operation == 'sum': graph_data = graph_data.sum()
-            elif operation == 'count': graph_data = graph_data.count()
-            elif operation == 'mean': graph_data = graph_data.mean()
-            elif operation == 'max': graph_data = graph_data.max()
-            elif operation == 'min': graph_data = graph_data.min()
-            else: graph_data = graph_data.count()
-            graph_data.columns = [{operation}]
             graph_data = graph_data.sort_values(ascending=False).plot(kind='line')
-            graph_data.get_figure().savefig('static/graph.png')
-            plt.close()
+        graph_data.get_figure().savefig('static/graph.png')
+        plt.close()
         return redirect('/data/graphs')
     else:
         return render_template('graph_options.html', graph_types=graph_types,
@@ -196,12 +214,13 @@ def graph_options():
 @app.route('/predictions', methods=['GET', 'POST'])
 @login_required
 def predictions():
+    temp_data = model.load_df()
     prediction_type = ['На неделю', 'На месяц', 'На год']
-    prediction_item_category = list(model.data['Категория товара'].unique())
-    prediction_item_value = list(model.data['Товар'].unique())
-    prediction_city_value = list(model.data['Город'].unique())
-    prediction_client_group_values = list(model.data['Группа клиентов'].unique())
-    prediction_format_values = list(model.data['Формат точки'].unique())
+    prediction_item_category = list(temp_data['Категория товара'].unique())
+    prediction_item_value = list(temp_data['Товар'].unique())
+    prediction_city_value = list(temp_data['Город'].unique())
+    prediction_client_group_values = list(temp_data['Группа клиентов'].unique())
+    prediction_format_values = list(temp_data['Формат точки'].unique())
     today = date.today()
     max_day = today + relativedelta(years=5)
     prediction_df = pd.DataFrame(columns=model.X.columns)
@@ -272,13 +291,14 @@ def data_model_page():
 @app.route('/data/add_row', methods=['GET', 'POST'])
 @login_required
 def add_row():
-    prediction_item_category = list(model.data['Категория товара'].unique())
-    prediction_item_value = list(model.data['Товар'].unique())
-    prediction_city_value = list(model.data['Город'].unique())
-    prediction_client_group_values = list(model.data['Группа клиентов'].unique())
-    prediction_format_values = list(model.data['Формат точки'].unique())
+    temp_data = model.load_df()
+    prediction_item_category = list(temp_data['Категория товара'].unique())
+    prediction_item_value = list(temp_data['Товар'].unique())
+    prediction_city_value = list(temp_data['Город'].unique())
+    prediction_client_group_values = list(temp_data['Группа клиентов'].unique())
+    prediction_format_values = list(temp_data['Формат точки'].unique())
     today = date.today()
-    avg_sell = round(model.data['Продажи, кг'].mean())
+    avg_sell = round(temp_data['Продажи, кг'].mean())
     min_day = today - relativedelta(years=3)
     if request.method == 'POST':
         if request.form["prediction_first_date"]:
