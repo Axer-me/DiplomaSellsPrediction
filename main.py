@@ -5,6 +5,8 @@ import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 import model
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import preprocessing
 from users import User, db
